@@ -51,3 +51,5 @@ To begin, you must redo a set of functions from the libc. Your functions will ha
 + ft_lstclear - deletes and free list.
 + ft_lstiter - applies a function to each element of a list.
 + ft_lstmap - applies a function to each element of a list.
+## My Result
+![DB431037-0585-497F-B621-01C73171ABF0_4_5005_c](https://github.com/Lucabhm/Libft/assets/144374574/6de8b2f9-b6d6-426c-bd83-564242ea8001)
