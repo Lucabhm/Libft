@@ -1,5 +1,16 @@
 NAME = libft.a
 CFLAGS = -Wall -Werror -Wextra
+FILES = $(shell find . -type f -name "*.c" | wc -l)
+FILESBONUS = $(shell find . -type f -name "*bonus.c" | wc -l | sed 's/^[[:space:]]*//;s/[[:space:]]*$$//')
+FILESMAND = $(shell echo $$(($(FILES) - $(FILESBONUS))))
+CALC = $(shell echo $$((($(COUNT) * 100) / $(FILESMAND))))
+CALCB = $(shell echo $$((($(COUNT) * 100) / $(FILESBONUS))))
+RESETLINE = \r\033[K
+BLUE = \033[0;33m
+YELLOW = \033[1;34m
+RED = \033[0;31m
+DEF_COLOR = \033[0m
+COUNT = 1
 SRC = ft_atoi.c \
 		ft_bzero.c \
 		ft_calloc.c \
@@ -47,24 +58,44 @@ OBJ = $(SRC:.c=.o)
 
 OBJBONUS = $(SRCBONUS:.c=.o)
 
-$(NAME):	$(OBJ)
-			ar rc $(NAME) $^
+$(NAME):	msg_mand $(OBJ)
+			@ar rc $(NAME) *.o
 
-bonus:		$(OBJ) $(OBJBONUS)
-			ar rc $(NAME) $^
+bonus:		msg_bonus $(OBJ) reset $(OBJBONUS)
+			@ar rc $(NAME) *.o
 
 
 all:		$(NAME)
 
-%.o:%.c
-			cc -c $< -o $@ $(CFLAGS)
+$(OBJ): %.o:%.c
+			@cc -c $< -o $@ $(CFLAGS)
+			@echo "$(RESETLINE)$(BLUE)$@ $(COUNT)/$(FILESMAND) $(CALC)/100%$(DEF_COLOR)\c"
+			@if [ $(COUNT) -eq $(FILESMAND) ]; then echo ""; fi
+			$(eval COUNT := $(shell echo $$(($(COUNT) + 1))))
+
+$(OBJBONUS): %.o:%.c
+			@cc -c $< -o $@ $(CFLAGS)
+			@echo "$(RESETLINE)$(BLUE)$@ $(COUNT)/$(FILESBONUS) $(CALCB)/100%$(DEF_COLOR)\c"
+			@if [ $(COUNT) -eq $(FILESBONUS) ]; then echo ""; fi
+			$(eval COUNT := $(shell echo $$(($(COUNT) + 1))))
 
 clean:
-			rm -f *.o
+			@echo "$(RED)Cleaning object files...$(DEF_COLOR)"
+			@rm -f *.o
 
 fclean:		clean
-			rm -f $(NAME)
+			@echo "$(RED)Cleaning executable files...$(DEF_COLOR)"
+			@rm -f $(NAME)
 
 re: fclean all
+
+reset:
+			$(eval COUNT := 1)
+
+msg_mand:
+			@echo "$(YELLOW)Compiling Libft Mandotory$(DEF_COLOR)"
+
+msg_bonus:
+			@echo "$(YELLOW)Compiling Libft Bonus$(DEF_COLOR)"
 
 .PHONY: all clean fclean re bonus
