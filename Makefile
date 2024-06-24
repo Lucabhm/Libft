@@ -6,8 +6,8 @@ FILESMAND = $(shell echo $$(($(FILES) - $(FILESBONUS))))
 CALC = $(shell echo $$((($(COUNT) * 100) / $(FILESMAND))))
 CALCB = $(shell echo $$((($(COUNT) * 100) / $(FILESBONUS))))
 RESETLINE = \r\033[K
-BLUE = \033[0;33m
-YELLOW = \033[1;34m
+BLUE = \033[1;34m
+YELLOW = \033[0;33m
 RED = \033[0;31m
 DEF_COLOR = \033[0m
 COUNT = 1
@@ -80,11 +80,11 @@ $(OBJBONUS): %.o:%.c
 			$(eval COUNT := $(shell echo $$(($(COUNT) + 1))))
 
 clean:
-			@echo "$(RED)Cleaning object files...$(DEF_COLOR)"
+			@echo "$(BLUE)Libft:$(DEF_COLOR) $(RED)Cleaning object files...$(DEF_COLOR)"
 			@rm -f *.o
 
 fclean:		clean
-			@echo "$(RED)Cleaning executable files...$(DEF_COLOR)"
+			@echo "$(BLUE)Libft:$(DEF_COLOR) $(RED)Cleaning executable files...$(DEF_COLOR)"
 			@rm -f $(NAME)
 
 re: fclean all
