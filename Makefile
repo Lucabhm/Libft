@@ -1,16 +1,5 @@
 NAME = libft.a
 CFLAGS = -Wall -Werror -Wextra
-FILES = $(shell find . -type f -name "*.c" | wc -l)
-FILESBONUS = $(shell find . -type f -name "*bonus.c" | wc -l | sed 's/^[[:space:]]*//;s/[[:space:]]*$$//')
-FILESMAND = $(shell echo $$(($(FILES) - $(FILESBONUS))))
-CALC = $(shell echo $$((($(COUNT) * 100) / $(FILESMAND))))
-CALCB = $(shell echo $$((($(COUNT) * 100) / $(FILESBONUS))))
-RESETLINE = \r\033[K
-BLUE = \033[1;34m
-YELLOW = \033[0;33m
-RED = \033[0;31m
-DEF_COLOR = \033[0m
-COUNT = 1
 SRC = ft_atoi.c \
 		ft_bzero.c \
 		ft_calloc.c \
@@ -54,48 +43,61 @@ SRCBONUS = ft_lstadd_back_bonus.c \
 		ft_lstmap_bonus.c \
 		ft_lstnew_bonus.c \
 		ft_lstsize_bonus.c
+OBJDIR = objs/
 OBJ = $(SRC:.c=.o)
-
 OBJBONUS = $(SRCBONUS:.c=.o)
+OBJS_PATH = $(addprefix $(OBJDIR), $(OBJ))
+OBJS_PATHB = $(addprefix $(OBJDIR), $(OBJBONUS))
 
-$(NAME):	msg_mand $(OBJ)
-			@ar rc $(NAME) *.o
+$(NAME):	logo $(OBJS_PATH)
+			@ar rc $(NAME) $(OBJS_PATH)
 
-bonus:		msg_bonus $(OBJ) reset $(OBJBONUS)
-			@ar rc $(NAME) *.o
+bonus:		logo $(OBJDIR) $(OBJS_PATH) $(OBJS_PATHB)
+			@ar rc $(NAME) $(OBJS_PATH) $(OBJS_PATHB)
 
+all:		$(OBJDIR) $(NAME)
 
-all:		$(NAME)
-
-$(OBJ): %.o:%.c
+$(OBJDIR)%.o: %.c | $(OBJDIR)
+			@mkdir -p $(dir $@)
 			@cc -c $< -o $@ $(CFLAGS)
-			@echo "$(RESETLINE)$(BLUE)$@ $(COUNT)/$(FILESMAND) $(CALC)/100%$(DEF_COLOR)\c"
-			@if [ $(COUNT) -eq $(FILESMAND) ]; then echo ""; fi
-			$(eval COUNT := $(shell echo $$(($(COUNT) + 1))))
+			@if [ "$(filter $<,$(SRC))" ]; then $(MAKE) progress; fi
+			@if [ "$(filter $<,$(SRCBONUS))" ]; then $(MAKE) progressb; fi
 
-$(OBJBONUS): %.o:%.c
-			@cc -c $< -o $@ $(CFLAGS)
-			@echo "$(RESETLINE)$(BLUE)$@ $(COUNT)/$(FILESBONUS) $(CALCB)/100%$(DEF_COLOR)\c"
-			@if [ $(COUNT) -eq $(FILESBONUS) ]; then echo ""; fi
-			$(eval COUNT := $(shell echo $$(($(COUNT) + 1))))
+$(OBJDIR):
+			@mkdir -p $(OBJDIR)
+
+progress:
+			@$(eval PROGRESS := $(shell echo $$(($(shell find $(SRC) -name '*.c' | wc -l) - $$(find $(OBJDIR) -name '*.o' | wc -l)))))
+			@$(eval TOTAL := $(shell find $(SRC) -name '*.c' | wc -l))
+			@$(eval PERCENT := $(shell echo "scale=2; (1 - $(PROGRESS) / $(TOTAL)) * 100" | bc))
+			@$(eval BAR := $(shell printf '=%.0s' {1..$(shell echo "scale=0; $(PERCENT) / 2" | bc)}))
+			@printf "\r[%-50s] %s%%" "$(BAR)" "$(PERCENT)"
+			@if [ "$(PERCENT)" = "100.00" ]; then printf "\n"; fi
+			@if [ "$(PERCENT)" = "100.00" ]; then printf "\033[0;32mlibft mandotory compiled\033[0m\n"; fi
+
+progressb:
+			@$(eval PROGRESSB := $(shell echo $$(($(shell find $(SRCBONUS) -name '*.c' | wc -l) - $$(find $(OBJDIR) -name '*bonus.o' | wc -l)))))
+			@$(eval TOTALB := $(shell find $(SRCBONUS) -name '*.c' | wc -l))
+			@$(eval PERCENTB := $(shell echo "scale=2; (1 - $(PROGRESSB) / $(TOTALB)) * 100" | bc))
+			@$(eval BARB := $(shell printf '=%.0s' {1..$(shell echo "scale=0; $(PERCENTB) / 2" | bc)}))
+			@printf "\r[%-50s] %s%%" "$(BARB)" "$(PERCENTB)"
+			@if [ "$(PERCENTB)" = "100.00" ]; then printf "\n"; fi
+			@if [ "$(PERCENTB)" = "100.00" ]; then printf "\033[0;32mlibft bonus compiled\033[0m\n"; fi
 
 clean:
-			@echo "$(BLUE)Libft:$(DEF_COLOR) $(RED)Cleaning object files...$(DEF_COLOR)"
-			@rm -f *.o
+			@rm -rf $(OBJDIR)
 
 fclean:		clean
-			@echo "$(BLUE)Libft:$(DEF_COLOR) $(RED)Cleaning executable files...$(DEF_COLOR)"
 			@rm -f $(NAME)
 
 re: fclean all
 
-reset:
-			$(eval COUNT := 1)
+logo:
+			@echo "  _    ___ ___ ___ _____ "
+			@echo " | |  |_ _| _ ) __|_   _|"
+			@echo " | |__ | || _ \ _|  | |  "
+			@echo " |____|___|___/_|   |_|  "
+			@echo "                         "
 
-msg_mand:
-			@echo "$(YELLOW)Compiling Libft Mandotory$(DEF_COLOR)"
 
-msg_bonus:
-			@echo "$(YELLOW)Compiling Libft Bonus$(DEF_COLOR)"
-
-.PHONY: all clean fclean re bonus
+.PHONY: all clean fclean re bonus progress progressb logo
